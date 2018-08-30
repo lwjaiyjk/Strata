@@ -10,6 +10,7 @@ import static com.opengamma.strata.collect.Guavate.ensureOnlyOne;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.DoubleUnaryOperator;
@@ -167,6 +168,33 @@ public final class CurrencyParameterSensitivity
       List<ParameterSize> parameterSplit) {
 
     return new CurrencyParameterSensitivity(marketDataName, parameterMetadata, currency, sensitivity, parameterSplit);
+  }
+
+  /**
+   * Obtains an instance from the market data name, currency and a map of metadata to sensitivity.
+   * <p>
+   * The market data name identifies the {@link ParameterizedData} instance that was queried.
+   * The parameter metadata provides information on each parameter.
+   * 
+   * @param marketDataName  the name of the market data that the sensitivity refers to
+   * @param sensitivityMetadataMap  the map of parameter metadata to sensitivity
+   * @param currency  the currency of the sensitivity
+   * @return the sensitivity object
+   */
+  public static CurrencyParameterSensitivity of(
+      MarketDataName<?> marketDataName,
+      Currency currency,
+      Map<? extends ParameterMetadata, Double> sensitivityMetadataMap) {
+
+    // only loop input map once and don't use size() to ensure no concurrency issues
+    ImmutableList.Builder<ParameterMetadata> metadataList = ImmutableList.builder();
+    ImmutableList.Builder<Double> sensList = ImmutableList.builder();
+    for (Entry<? extends ParameterMetadata, Double> entry : sensitivityMetadataMap.entrySet()) {
+      metadataList.add(entry.getKey());
+      sensList.add(entry.getValue());
+    }
+    DoubleArray sensArray = DoubleArray.copyOf(sensList.build());
+    return new CurrencyParameterSensitivity(marketDataName, metadataList.build(), currency, sensArray, null);
   }
 
   //-------------------------------------------------------------------------

@@ -17,6 +17,7 @@ import java.util.Optional;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.opengamma.strata.basics.currency.Currency;
 import com.opengamma.strata.basics.currency.CurrencyAmount;
 import com.opengamma.strata.basics.currency.FxRate;
@@ -83,6 +84,19 @@ public class CurrencyParameterSensitivityTest {
     assertThrowsIllegalArg(() -> CurrencyParameterSensitivity.of(NAME_COMBINED, METADATA_USD1, USD, VECTOR_USD1, PARAM_SPLIT));
   }
 
+  //-------------------------------------------------------------------------
+  public void test_of_map() {
+    ImmutableMap<ParameterMetadata, Double> map = ImmutableMap.of(METADATA_USD1.get(0), 2d, METADATA_USD1.get(1), 3d);
+    CurrencyParameterSensitivity test = CurrencyParameterSensitivity.of(NAME1, USD, map);
+    assertEquals(test.getMarketDataName(), NAME1);
+    assertEquals(test.getParameterCount(), 2);
+    assertEquals(test.getParameterMetadata(), METADATA_USD1.subList(0, 2));
+    assertEquals(test.getParameterMetadata(0), METADATA_USD1.get(0));
+    assertEquals(test.getCurrency(), USD);
+    assertEquals(test.getSensitivity(), VECTOR_USD1.subArray(0, 2));
+  }
+
+  //-------------------------------------------------------------------------
   public void test_combine() {
     CurrencyParameterSensitivity base1 = CurrencyParameterSensitivity.of(NAME1, METADATA_USD1, USD, VECTOR_USD1);
     CurrencyParameterSensitivity base2 = CurrencyParameterSensitivity.of(NAME2, METADATA_USD2, USD, VECTOR_USD2);
